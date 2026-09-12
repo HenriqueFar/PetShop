@@ -1,19 +1,15 @@
 import java.util.ArrayList;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.ResolverStyle;
 import java.util.Scanner;
 
 public class PetShop {
     private ArrayList<Tutor> tutores;
     private Scanner teclado;
-    private DateTimeFormatter formatadorData;
 
     public PetShop() {
         this.tutores = new ArrayList<>();
         this.teclado = new Scanner(System.in);
-        this.formatadorData = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
     }
 
     public static void main(String[] args) {
@@ -81,7 +77,7 @@ public class PetShop {
 
         String nomeTutor = lerTextoObrigatorio("Nome do tutor: ");
         String endereco = lerTextoObrigatorio("Endereco: ");
-        LocalDate dataNasc = lerData("Data de nascimento (dd/MM/yyyy): ");
+        LocalDate dataNasc = lerData("Data de nascimento (dd MM yyyy): ");
 
         Tutor tutor = new Tutor(nomeTutor, endereco, dataNasc);
 
@@ -129,9 +125,18 @@ public class PetShop {
             System.out.print(mensagem);
             String entrada = teclado.nextLine().trim();
             try {
-                return LocalDate.parse(entrada, formatadorData);
-            } catch (DateTimeParseException e) {
-                System.out.println("Data invalida. Use o formato dd/MM/yyyy.");
+                String[] partes = entrada.split("\\s+");
+                if (partes.length != 3) {
+                    throw new DateTimeParseException("Formato invalido", entrada, 0);
+                }
+
+                int dia = Integer.parseInt(partes[0]);
+                int mes = Integer.parseInt(partes[1]);
+                int ano = Integer.parseInt(partes[2]);
+
+                return LocalDate.of(ano, mes, dia);
+            } catch (DateTimeParseException | NumberFormatException e) {
+                System.out.println("Data invalida. Use o formato dd MM yyyy.");
             }
         }
     }
