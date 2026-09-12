@@ -6,4 +6,17 @@ public class Pet {
         this.nomePet = nomePet;
         this.tipoPet = tipoPet;
     }
+
+    public String getNomePet() {
+        return nomePet;
+    }
+
+    public String getTipoPet() {
+        return tipoPet;
+    }
+
+    @Override
+    public String toString() {
+        return "Pet {nome='" + nomePet + "', tipo='" + tipoPet + "'}";
+    }
 }
