@@ -142,7 +142,18 @@ public class PetShop {
     }
 
     private void imprimirCadastro() {
-        System.out.println("funcao ainda indisponivel");
+        System.out.println("--- Cadastro de Tutores e Pets ---");
+
+        if (tutores.isEmpty()) {
+            System.out.println("Nenhum cadastro encontrado.");
+            return;
+        }
+
+        for (Tutor tutor : tutores) {
+            tutor.imprimirInformacoes();
+
+            System.out.println("------------------------------");
+        }
     }
 
     private void buscarTutorPetsPorCodigo() {
