@@ -1,13 +1,19 @@
 import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Scanner;
 
 public class PetShop {
     private ArrayList<Tutor> tutores;
     private Scanner teclado;
+    private DateTimeFormatter formatadorData;
 
     public PetShop() {
         this.tutores = new ArrayList<>();
         this.teclado = new Scanner(System.in);
+        this.formatadorData = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
     }
 
     public static void main(String[] args) {
@@ -71,7 +77,63 @@ public class PetShop {
     }
 
     private void cadastrarTutorPets() {
-        System.out.println("funcao ainda indisponivel");
+        System.out.println("--- Cadastro de Tutor/Pets ---");
+
+        String nomeTutor = lerTextoObrigatorio("Nome do tutor: ");
+        String endereco = lerTextoObrigatorio("Endereco: ");
+        LocalDate dataNasc = lerData("Data de nascimento (dd/MM/yyyy): ");
+
+        Tutor tutor = new Tutor(nomeTutor, endereco, dataNasc);
+
+        int quantidadePets = lerInteiroNaoNegativo("Quantidade de pets: ");
+        for (int i = 1; i <= quantidadePets; i++) {
+            System.out.println("Cadastro do pet " + i + ":");
+            String nomePet = lerTextoObrigatorio("  Nome do pet: ");
+            String tipoPet = lerTextoObrigatorio("  Tipo do pet: ");
+            tutor.adicionarPet(new Pet(nomePet, tipoPet));
+        }
+
+        tutores.add(tutor);
+        System.out.println("Tutor cadastrado com sucesso. Codigo gerado: " + tutor.getCod());
+    }
+
+    private String lerTextoObrigatorio(String mensagem) {
+        while (true) {
+            System.out.print(mensagem);
+            String valor = teclado.nextLine().trim();
+            if (!valor.isEmpty()) {
+                return valor;
+            }
+            System.out.println("Campo obrigatorio. Tente novamente.");
+        }
+    }
+
+    private int lerInteiroNaoNegativo(String mensagem) {
+        while (true) {
+            System.out.print(mensagem);
+            String entrada = teclado.nextLine().trim();
+            try {
+                int valor = Integer.parseInt(entrada);
+                if (valor >= 0) {
+                    return valor;
+                }
+                System.out.println("Informe um numero maior ou igual a zero.");
+            } catch (NumberFormatException e) {
+                System.out.println("Valor invalido. Informe um numero inteiro.");
+            }
+        }
+    }
+
+    private LocalDate lerData(String mensagem) {
+        while (true) {
+            System.out.print(mensagem);
+            String entrada = teclado.nextLine().trim();
+            try {
+                return LocalDate.parse(entrada, formatadorData);
+            } catch (DateTimeParseException e) {
+                System.out.println("Data invalida. Use o formato dd/MM/yyyy.");
+            }
+        }
     }
 
     private void imprimirCadastro() {
