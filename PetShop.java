@@ -157,7 +157,22 @@ public class PetShop {
     }
 
     private void buscarTutorPetsPorCodigo() {
-        System.out.println("funcao ainda indisponivel");
+        int cod = lerInteiroNaoNegativo("Digite codigo do tutor a ser localizado: ");
+        boolean achou = false;
+
+        for (Tutor t : tutores){
+            if(t.getCod() == cod){
+                System.out.println("--- Tutor localizado ---");
+                t.imprimirInformacoes();
+                achou = true;
+                break;
+            }
+        }
+        if (!achou){
+            System.out.println("\n---Código de tutor não encontrado!---");
+        }
+
+
     }
 
     private void excluirTutorPorCodigo() {
