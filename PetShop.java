@@ -141,6 +141,8 @@ public class PetShop {
         }
     }
 
+
+
     private void imprimirCadastro() {
         System.out.println("--- Cadastro de Tutores e Pets ---");
 
@@ -180,6 +182,88 @@ public class PetShop {
     }
 
     private void excluirPet() {
-        System.out.println("funcao ainda indisponivel");
+
+    Tutor tutorEscolhido = null;
+    boolean codigoExiste = false;
+
+    while (true) {
+
+        int code = lerInteiroNaoNegativo("Digite o codigo do tutor: ");
+
+        for (int i = 0; i < tutores.size(); i++) {
+
+            Tutor x = tutores.get(i);
+
+            if (x.getCod() == code) {
+                codigoExiste = true;
+                tutorEscolhido = x;
+                break;
+            }
+        }
+
+        if (codigoExiste == false) {
+            System.out.println("Codigo invalido, tente novamente!");
+        } else {
+            break;
+        }
     }
+
+    // Verifica se o tutor possui pets
+    if (tutorEscolhido.getPets().isEmpty()) {
+        System.out.println("Esse tutor nao possui pets.");
+        return;
+    }
+
+    String nomeDoPet = "";
+
+    while (true) {
+
+        String nomepet = lerTextoObrigatorio(
+            "Digite nome do pet a ser excluido: "
+        );
+
+        boolean petExiste = false;
+
+        for (int i = 0; i < tutorEscolhido.getPets().size(); i++) {
+
+            Pet petAtual = tutorEscolhido.getPets().get(i);
+
+            if (nomepet.equalsIgnoreCase(petAtual.getNomePet())) {
+
+                petExiste = true;
+                nomeDoPet = petAtual.getNomePet();
+
+                tutorEscolhido.getPets().remove(i);
+
+                // Se não restaram pets, remove o tutor também
+                if (tutorEscolhido.getPets().isEmpty()) {
+                    tutores.remove(tutorEscolhido);
+
+                    System.out.println(
+                        "--- Pet " + nomeDoPet +
+                        " excluido com sucesso! ---"
+                    );
+
+                    System.out.println(
+                        "--- O tutor nao possui mais pets e foi excluido. ---"
+                    );
+
+                    return;
+                }
+
+                break;
+            }
+        }
+
+        if (petExiste) {
+            break;
+        } else {
+            System.out.println("Pet nao encontrado. Tente novamente!");
+        }
+    }
+
+    System.out.println(
+        "--- Pet " + nomeDoPet + " excluido com sucesso! ---"
+    );
+}
 }
