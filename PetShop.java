@@ -219,7 +219,19 @@ public class PetShop {
    }
 
    private void excluirTutorPorCodigo() {
-      System.out.println("funcao ainda indisponivel");
+      int codigo = lerInteiroNaoNegativo("Digite o codigo do tutor que deseja excluir: ");
+
+      for (int i = 0; i < tutores.size(); i++) {
+         Tutor tutor = tutores.get(i);
+
+         if (tutor.getCod() == codigo) {
+            tutores.remove(i);
+            System.out.println("--- Tutor e todos os seus pets excluidos com sucesso. ---");
+            return;
+         }
+      }
+
+      System.out.println("--- Codigo de tutor nao encontrado. Exclusao nao realizada. ---");
    }
 
    private void excluirPet() {
