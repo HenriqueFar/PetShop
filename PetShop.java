@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 
 public class PetShop {
@@ -168,7 +167,7 @@ public class PetShop {
          try {
             String[] partes = entrada.split("\\s+");
             if (partes.length != 3) {
-               throw new DateTimeParseException("Formato invalido", entrada, 0);
+               throw new IllegalArgumentException();
             }
          
             int dia = Integer.parseInt(partes[0]);
@@ -176,7 +175,7 @@ public class PetShop {
             int ano = Integer.parseInt(partes[2]);
          
             return LocalDate.of(ano, mes, dia);
-         } catch (DateTimeParseException | NumberFormatException e) {
+         } catch (Exception e) {
             System.out.println("Data invalida. Use o formato dd MM yyyy.");
          }
       }
