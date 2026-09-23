@@ -17,7 +17,7 @@ public class PetShop {
    }
     
     //gabriel: mudei a logica pra conseguir gerar um codigo de tutor automaticamente
-   private int geraCodTutor(){
+   public int geraCodTutor(){
       if (tutores.isEmpty()){
          return 1;
       }
@@ -65,7 +65,7 @@ public class PetShop {
       System.out.print("Opcao: ");
    }
 
-   private char lerOpcao() {
+   public char lerOpcao() {
       String entrada = teclado.nextLine().trim().toLowerCase();
       if (entrada.isEmpty()) {
          return '\0';
@@ -73,7 +73,7 @@ public class PetShop {
       return entrada.charAt(0);
    }
 
-   private void processarOpcao(char opcao) {
+   public void processarOpcao(char opcao) {
       switch (opcao) {
          case 'c':
             cadastrarTutorPets();
@@ -82,10 +82,10 @@ public class PetShop {
             imprimirCadastro();
             break;
          case 'b':
-            buscarTutorPetsPorCodigo();
+            buscarTutor();
             break;
          case 'e':
-            excluirTutorPorCodigo();
+            excluirTutor();
             break;
          case 'p':
             excluirPet();
@@ -98,42 +98,63 @@ public class PetShop {
       }
    }
     
-    //fazer um if para mostrar se o tutor.incluiPet deu certo ou nn
-   private void cadastrarTutorPets() {
-      System.out.println("--- Cadastro de Tutor/Pets ---");
    
-      String nomeTutor = lerTextoObrigatorio("Nome do tutor: ");
-      String endereco = lerTextoObrigatorio("Endereco: ");
-      LocalDate dataNasc = lerData("Data de nascimento (dd MM yyyy): ");
-   
-      Tutor tutor = new Tutor(geraCodTutor(), nomeTutor, endereco, dataNasc);
-   
-      int quantidadePets = lerInteiroNaoNegativo("Quantidade de pets: ");
-      for (int i = 1; i <= quantidadePets; i++) {
-         System.out.println("Cadastro do pet " + i + ":");
-            
-         boolean incluido = false;
-         while(!incluido){
-            String nomePet = lerTextoObrigatorio(" Nome do Pet: ");
-            String tipoPet = lerTextoObrigatorio(" Tipo do Pet: ");
-            
-            incluido = tutor.incluiPet(nomePet, tipoPet);
-            
-            if(incluido){
-               System.out.println(" --- Pet cadastrado ---");
+   public void cadastrarTutorPets() {
+      while (true) {
+         System.out.print("Digite nome do tutor (vazio encerra cadastro tutor): ");
+         String nomeTutor = teclado.nextLine().trim();
+         if (nomeTutor.isEmpty()) {
+            System.out.println("--- Cadastro de tutor/pets encerrado ---");
+            break;
+         }
+      
+         int dia, mes, ano;
+         while (true) {
+            dia = lerInteiro("Digite dia de nascimento: ");
+            mes = lerInteiro("Digite mes de nascimento: ");
+            ano = lerInteiro("Digite ano de nascimento: ");
+         
+            if (validaData(dia, mes, ano)) {
+               break;
+            }
+            System.out.println("Data invalida! Tente novamente.");
+         }
+         LocalDate dataNasc = LocalDate.of(ano, mes, dia);
+      
+         String endereco = lerTextoObrigatorio("Digite endereco do tutor: ");
+      
+         Tutor tutor = new Tutor(geraCodTutor(), nomeTutor, endereco, dataNasc);
+      
+         System.out.println("--- Inclusao de Pets ---");
+         boolean temPet = false;
+         while (true) {
+            System.out.print("Digite nome do pet (vazio encerra cadastro pet): ");
+            String nomePet = teclado.nextLine().trim();
+            if (nomePet.isEmpty()) {
+               System.out.println("--- Cadastro de pets do tutor encerrado ---");
+               break;
+            }
+         
+            String tipoPet = lerTextoObrigatorio("Digite tipo do pet: ");
+         
+            if (tutor.incluiPet(nomePet, tipoPet)) {
+               temPet = true;
+               System.out.println("--- Pet cadastrado ---");
             } else {
-               System.out.println(" Ja existe um pet com esse nome para esse tutor! Tente outro nome.");
+               System.out.println("Ja existe um pet com esse nome para esse tutor! Tente outro nome.");
             }
          }
+      
+         if (temPet) {
+            tutores.add(tutor);
+            System.out.println("--- Tutor/pets cadastrado ---");
+         } else {
+            System.out.println("--- Tutor nao cadastrado: nenhum pet informado ---");
+         }
       }
-        
-        
-   
-      tutores.add(tutor);
-      System.out.println("Tutor cadastrado com sucesso. Codigo gerado: " + tutor.getCod());
    }
 
-   private String lerTextoObrigatorio(String mensagem) {
+   public String lerTextoObrigatorio(String mensagem) {
       while (true) {
          System.out.print(mensagem);
          String valor = teclado.nextLine().trim();
@@ -144,103 +165,93 @@ public class PetShop {
       }
    }
 
-   private int lerInteiroNaoNegativo(String mensagem) {
+   private int lerInteiro(String mensagem) {
+      int valor;
       while (true) {
          System.out.print(mensagem);
-         String entrada = teclado.nextLine().trim();
-         try {
-            int valor = Integer.parseInt(entrada);
-            if (valor >= 0) {
-               return valor;
-            }
-            System.out.println("Informe um numero maior ou igual a zero.");
-         } catch (NumberFormatException e) {
-            System.out.println("Valor invalido. Informe um numero inteiro.");
+         if (teclado.hasNextInt()) {
+            valor = teclado.nextInt();
+            teclado.nextLine();
+            return valor;
          }
+         System.out.println("Valor invalido! Digite um numero inteiro.");
+         teclado.nextLine();
       }
    }
 
-   private LocalDate lerData(String mensagem) {
-      while (true) {
-         System.out.print(mensagem);
-         String entrada = teclado.nextLine().trim();
-         try {
-            String[] partes = entrada.split("\\s+");
-            if (partes.length != 3) {
-               throw new IllegalArgumentException();
-            }
-         
-            int dia = Integer.parseInt(partes[0]);
-            int mes = Integer.parseInt(partes[1]);
-            int ano = Integer.parseInt(partes[2]);
-         
-            return LocalDate.of(ano, mes, dia);
-         } catch (Exception e) {
-            System.out.println("Data invalida. Use o formato dd MM yyyy.");
-         }
+   //retorna true se a data digitada eh menor que a data limite do ano para o mes em questao 
+   public boolean validaData(int dia, int mes, int ano){
+      if(ano <= 0 || mes < 1 || mes > 12  || dia < 1)
+      {
+         return false;
       }
-   }
-
-
-
-   private void imprimirCadastro() {
-      System.out.println("--- Cadastro de Tutores e Pets ---");
+      
+      int[] diasPorMes = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+      int limite = diasPorMes[mes - 1];
+      
+      boolean bissexto = (ano % 4 == 0 && ano % 100 != 0) || (ano % 400 == 0);
+      if (mes == 2 && bissexto) {
+         limite = 29;
+      }
    
+      return dia <= limite;
+   }
+   
+   public void imprimirCadastro() {
+      System.out.println("--- CADASTRO DE TUTORES E PETS ---");
       if (tutores.isEmpty()) {
          System.out.println("Nenhum cadastro encontrado.");
          return;
       }
-   
       for (Tutor tutor : tutores) {
-         tutor.imprimirInformacoes();
-      
+         System.out.println(tutor.toString());
          System.out.println("------------------------------");
       }
    }
 
-   private void buscarTutorPetsPorCodigo() {
-      int cod = lerInteiroNaoNegativo("Digite codigo do tutor a ser localizado: ");
+   public void buscarTutor() {
+      int cod = lerInteiro("Digite codigo do tutor a ser localizado: ");
       boolean achou = false;
    
       for (Tutor t : tutores){
          if(t.getCod() == cod){
-            System.out.println("--- Tutor localizado ---");
-            t.imprimirInformacoes();
+            System.out.println("--- Tutor localizado ---\n");
+            System.out.println(t.toString());
             achou = true;
             break;
          }
       }
       if (!achou){
-         System.out.println("\n---Código de tutor não encontrado!---");
+         System.out.println("\n---Codigo de tutor nao encontrado!---");
       }
    
    
    }
 
-   private void excluirTutorPorCodigo() {
-      int codigo = lerInteiroNaoNegativo("Digite o codigo do tutor que deseja excluir: ");
-
+   public void excluirTutor() {
+      int codigo = lerInteiro("Digite o codigo do tutor que deseja excluir: ");
+   
       for (int i = 0; i < tutores.size(); i++) {
          Tutor tutor = tutores.get(i);
-
+      
          if (tutor.getCod() == codigo) {
             tutores.remove(i);
             System.out.println("--- Tutor e todos os seus pets excluidos com sucesso. ---");
             return;
          }
       }
-
+   
       System.out.println("--- Codigo de tutor nao encontrado. Exclusao nao realizada. ---");
    }
 
-   private void excluirPet() {
+   public void excluirPet() {
    
       Tutor tutorEscolhido = null;
       boolean codigoExiste = false;
    
       while (true) {
       
-         int code = lerInteiroNaoNegativo("Digite o codigo do tutor: ");
+         int code = lerInteiro("Digite o codigo do tutor: ");
       
          for (int i = 0; i < tutores.size(); i++) {
          
@@ -261,61 +272,29 @@ public class PetShop {
       }
    
     // Verifica se o tutor possui pets
-      if (tutorEscolhido.getPets().isEmpty()) {
+      if (tutorEscolhido.numPets() == 0) {
          System.out.println("Esse tutor nao possui pets.");
          return;
       }
    
-      String nomeDoPet = "";
-   
       while (true) {
       
-         String nomepet = lerTextoObrigatorio(
-            "Digite nome do pet a ser excluido: "
-            );
+         String nomepet = lerTextoObrigatorio("Digite nome do pet a ser excluido: ");
       
-         boolean petExiste = false;
+         boolean petExiste = tutorEscolhido.excluiPet(nomepet);
       
-         for (int i = 0; i < tutorEscolhido.getPets().size(); i++) {
+         if(petExiste){
+            System.out.println("--- Pet " + nomepet + " excluido com sucesso! ---");
          
-            Pet petAtual = tutorEscolhido.getPets().get(i);
-         
-            if (nomepet.equalsIgnoreCase(petAtual.getNomePet())) {
-            
-               petExiste = true;
-               nomeDoPet = petAtual.getNomePet();
-            
-               tutorEscolhido.getPets().remove(i);
-            
-                // Se não restaram pets, remove o tutor também
-               if (tutorEscolhido.getPets().isEmpty()) {
-                  tutores.remove(tutorEscolhido);
-               
-                  System.out.println(
-                        "--- Pet " + nomeDoPet +
-                        " excluido com sucesso! ---"
-                     );
-               
-                  System.out.println(
-                        "--- O tutor nao possui mais pets e foi excluido. ---"
-                     );
-               
-                  return;
-               }
-            
-               break;
-            }
-         }
-      
-         if (petExiste) {
-            break;
+            if (tutorEscolhido.numPets() == 0) {
+               tutores.remove(tutorEscolhido);
+               System.out.println("--- Tutor " + tutorEscolhido.getNomeTutor() + " excluido por nao possuir mais pets! ---");
+            } 
+            return;
+           
          } else {
             System.out.println("Pet nao encontrado. Tente novamente!");
          }
       }
-   
-      System.out.println(
-         "--- Pet " + nomeDoPet + " excluido com sucesso! ---"
-         );
    }
 }
