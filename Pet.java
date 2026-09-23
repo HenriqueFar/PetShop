@@ -15,12 +15,7 @@ public class Pet {
         return tipoPet;
     }
 
-    public void imprimirInformacoes(int numero) {
-        System.out.println("  " + numero + ". " + nomePet + " (" + tipoPet + ")");
-    }
-
-    @Override
-    public String toString() {
-        return "Pet {nome='" + nomePet + "', tipo='" + tipoPet + "'}";
+   public String toString() {
+       return "- Nome do pet: " + nomePet + "; Tipo: " + tipoPet + ".";
     }
 }
