@@ -1,6 +1,7 @@
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.time.Period;
 
 public class Tutor {
    private static final DateTimeFormatter FORMATADOR_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -26,17 +27,14 @@ public class Tutor {
    public String getNomeTutor() {
       return nomeTutor;
    }
-
-   public String getEndereco() {
-      return endereco;
+   
+   public int getIdade()
+   {
+      return Period.between(dataNasc, LocalDate.now()).getYears();
    }
-
-   public LocalDate getDataNasc() {
-      return dataNasc;
-   }
-
-   public ArrayList<Pet> getPets() {
-      return pets;
+   
+   public String getDataNascFormatada(){
+      return dataNasc.format(FORMATADOR_DATA);
    }
    
    //faz validacao para garantir que nao terao mais de um pet com o mesmo nome para o mesmo tutor 
@@ -49,27 +47,41 @@ public class Tutor {
       pets.add(new Pet(nomePet, tipoPet));
       return true;
    }
-
-   public void imprimirInformacoes() {
-      System.out.println("Tutor #" + cod);
-      System.out.println("Nome: " + nomeTutor);
-      System.out.println("Endereco: " + endereco);
-      System.out.println("Data de nascimento: " + dataNasc.format(FORMATADOR_DATA));
    
-      if (pets.isEmpty()) {
-         System.out.println("Pets: sem pets cadastrados");
-         return;
-      }
-   
-      System.out.println("Pets:");
+   //logica para excluir pet em Tutor
+   public boolean excluiPet(String nomePet)
+   {
       for (int i = 0; i < pets.size(); i++) {
-         pets.get(i).imprimirInformacoes(i + 1);
+         if (pets.get(i).getNomePet().equalsIgnoreCase(nomePet)) {
+            pets.remove(i);
+            return true;
+         }
       }
+      return false;
+   }
+   
+   public int numPets()
+   {
+      return pets.size();
    }
 
-   @Override
    public String toString() {
-      return "Tutor {cod=" + cod + ", nome='" + nomeTutor + "', endereco='" + endereco
-             + "', dataNasc=" + dataNasc + ", pets=" + pets + "}";
+    //ts -> texto
+    String ts = "Cod. do Tutor.....: " + cod + "\n";
+    ts += "Nome..............: " + nomeTutor + "\n";
+    ts += "Data de nascimento: " + dataNasc.format(FORMATADOR_DATA) + " (" + getIdade() + " anos)\n";
+    ts += "Endereco..........: " + endereco + "\n";
+
+    if (pets.isEmpty()) {
+        ts += "Pets: sem pets cadastrados";
+        return ts;
+    }
+
+    ts += "Relacao de Pets...:\n";
+    for (Pet p : pets) {
+        ts += p.toString() + "\n";
+    }
+
+    return ts;
    }
 }
