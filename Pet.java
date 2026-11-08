@@ -43,6 +43,14 @@ public class Pet implements Serializable {
         return Period.between(dataNasc, LocalDate.now()).getYears();
     }
 
+    // Confere os dados recuperados do arquivo (que pode ter sido alterado fora do programa).
+    public boolean dadosValidos() {
+        return nomePet != null && !nomePet.trim().isEmpty()
+            && tipoPet != null && !tipoPet.trim().isEmpty()
+            && dataNasc != null && dataNasc.getYear() > 0
+            && !dataNasc.isAfter(LocalDate.now());
+    }
+
    public String toString() {
        return "- Nome do pet: " + nomePet + "; Tipo: " + tipoPet + "; Nascimento: "
            + dataNasc.format(FORMATADOR_DATA) + " (" + getIdade() + " anos).";

@@ -82,6 +82,29 @@ public class Tutor implements Serializable {
       return pets.size();
    }
 
+   // Confere os dados recuperados do arquivo (que pode ter sido alterado fora do programa):
+   // campos preenchidos, datas validas, pelo menos um pet e nomes de pets sem repeticao.
+   public boolean dadosValidos() {
+      if (cod <= 0 || nomeTutor == null || nomeTutor.trim().isEmpty()
+            || endereco == null || endereco.trim().isEmpty()
+            || dataNasc == null || dataNasc.getYear() <= 0 || dataNasc.isAfter(LocalDate.now())
+            || pets == null || pets.isEmpty()) {
+         return false;
+      }
+      for (int i = 0; i < pets.size(); i++) {
+         Pet p = pets.get(i);
+         if (p == null || !p.dadosValidos()) {
+            return false;
+         }
+         for (int j = 0; j < i; j++) {
+            if (pets.get(j).getNomePet().equalsIgnoreCase(p.getNomePet())) {
+               return false;
+            }
+         }
+      }
+      return true;
+   }
+
    public String toString() {
     //ts -> texto
     String ts = "Cod. do Tutor.....: " + cod + "\n";

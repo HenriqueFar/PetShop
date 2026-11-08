@@ -180,11 +180,16 @@ public class PetInterface extends JFrame {
    }
 
    // Produz o proximo codigo de tutor a partir do ultimo da lista.
+   // Devolve -1 se o ultimo codigo ja for o maior inteiro possivel.
    public static int geraCod() {
       if (tutores.isEmpty()) {
          return 1; // Primeiro cadastro.
       }
-      return tutores.get(tutores.size() - 1).getCod() + 1;
+      int ultimo = tutores.get(tutores.size() - 1).getCod();
+      if (ultimo == Integer.MAX_VALUE) {
+         return -1; // Evita que o codigo "de a volta" e fique negativo.
+      }
+      return ultimo + 1;
    }
 
    // Devolve o tutor com o codigo informado ou null se nao existir.
@@ -374,7 +379,12 @@ public class PetInterface extends JFrame {
                return;
             }
 
-            Tutor novo = new Tutor(geraCod(), n, end, dataNasc);
+            int cod = geraCod();
+            if (cod < 0) {
+               erro(CadastrarFrame.this, "Limite de codigos de tutor atingido. Cadastro nao realizado.");
+               return;
+            }
+            Tutor novo = new Tutor(cod, n, end, dataNasc);
             for (Pet p : petsNovos) {
                novo.incluiPet(p.getNomePet(), p.getTipoPet(), p.getDataNasc());
             }
@@ -682,7 +692,15 @@ public class PetInterface extends JFrame {
                writeLog("O arquivo contem um objeto que nao e um Tutor. Gravacao bloqueada.");
                return 0;
             }
-            lidos.add((Tutor) objeto); // Cada tutor vem com a sua lista de pets.
+            Tutor tutor = (Tutor) objeto; // Cada tutor vem com a sua lista de pets.
+            // O arquivo pode ter sido alterado fora do programa: confere o conteudo
+            // e exige codigos positivos, sem repeticao e em ordem crescente.
+            int codAnterior = lidos.isEmpty() ? 0 : lidos.get(lidos.size() - 1).getCod();
+            if (!tutor.dadosValidos() || tutor.getCod() <= codAnterior) {
+               writeLog("O arquivo contem dados de tutor invalidos. Gravacao bloqueada.");
+               return 0;
+            }
+            lidos.add(tutor);
          }
          concluida = true; // Todos os objetos previstos foram recuperados.
       } catch (EOFException erro) {
@@ -700,6 +718,9 @@ public class PetInterface extends JFrame {
       } catch (RuntimeException erro) {
          // Dados adulterados podem gerar erros na reconstrucao dos objetos.
          writeLog("Arquivo de dados com conteudo invalido: " + erro);
+      } catch (OutOfMemoryError erro) {
+         // Tamanhos adulterados no arquivo podem exigir memoria demais.
+         writeLog("Arquivo de dados com tamanho invalido (memoria insuficiente). Gravacao bloqueada.");
       } finally {
          // O fechamento e tentado mesmo se a leitura for interrompida por erro.
          if (entrada != null) {
