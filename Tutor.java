@@ -42,26 +42,39 @@ public class Tutor implements Serializable {
    }
    
    //faz validacao para garantir que nao terao mais de um pet com o mesmo nome para o mesmo tutor 
-   public boolean incluiPet(String nomePet, String tipoPet) {
-      for (Pet p : pets) {
-         if (p.getNomePet().equalsIgnoreCase(nomePet)) {
-            return false;
-         }
+   public boolean incluiPet(String nomePet, String tipoPet, LocalDate dataNasc) {
+      if (buscaPet(nomePet) != null) {
+         return false;
       }
-      pets.add(new Pet(nomePet, tipoPet));
+      pets.add(new Pet(nomePet, tipoPet, dataNasc));
       return true;
    }
+
+   // Devolve o pet com o nome informado (sem diferenciar maiusculas) ou null.
+   public Pet buscaPet(String nomePet) {
+      for (Pet p : pets) {
+         if (p.getNomePet().equalsIgnoreCase(nomePet)) {
+            return p;
+         }
+      }
+      return null;
+   }
    
-   //logica para excluir pet em Tutor
-   public boolean excluiPet(String nomePet)
+   // Exclui o pet pelo nome. Devolve a posicao que ele ocupava, ou -1 se nao existir.
+   public int excluiPet(String nomePet)
    {
       for (int i = 0; i < pets.size(); i++) {
          if (pets.get(i).getNomePet().equalsIgnoreCase(nomePet)) {
             pets.remove(i);
-            return true;
+            return i;
          }
       }
-      return false;
+      return -1;
+   }
+
+   // Recoloca um pet na posicao original (desfaz uma exclusao que nao foi gravada).
+   public void restauraPet(int posicao, Pet pet) {
+      pets.add(posicao, pet);
    }
    
    public int numPets()
