@@ -1,0 +1,7 @@
+# Arquivos compilados
+*.class
+
+# Copias temporarias geradas pela gravacao do cadastro
+PetShop.dat.anterior
+PetShop.dat.novo
+PetShop.dat.corrompido
