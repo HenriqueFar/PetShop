@@ -2,8 +2,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.time.Period;
+// Permite gravar objetos Tutor (e sua lista de pets) por serializacao.
+import java.io.Serializable;
 
-public class Tutor {
+public class Tutor implements Serializable {
+   // Versao fixa da classe: permite ler arquivos gravados antes de alteracoes no codigo.
+   private static final long serialVersionUID = -2893196775198721555L;
    private static final DateTimeFormatter FORMATADOR_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
    private int cod;
