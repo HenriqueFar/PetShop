@@ -2,11 +2,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.time.Period;
-// Permite gravar objetos Tutor (e sua lista de pets) por serializacao.
 import java.io.Serializable;
 
 public class Tutor implements Serializable {
-   // Versao fixa da classe: permite ler arquivos gravados antes de alteracoes no codigo.
    private static final long serialVersionUID = -2893196775198721555L;
    private static final DateTimeFormatter FORMATADOR_DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -50,7 +48,7 @@ public class Tutor implements Serializable {
       return true;
    }
 
-   // Devolve o pet com o nome informado (sem diferenciar maiusculas) ou null.
+   // Devolve o pet com o nome informado (sem diferenciar maiusculas) ou null
    public Pet buscaPet(String nomePet) {
       for (Pet p : pets) {
          if (p.getNomePet().equalsIgnoreCase(nomePet)) {
@@ -60,7 +58,7 @@ public class Tutor implements Serializable {
       return null;
    }
    
-   // Exclui o pet pelo nome. Devolve a posicao que ele ocupava, ou -1 se nao existir.
+   // Exclui o pet pelo nome. Devolve a posicao que ele ocupava, ou -1 se nao existir
    public int excluiPet(String nomePet)
    {
       for (int i = 0; i < pets.size(); i++) {
@@ -83,7 +81,7 @@ public class Tutor implements Serializable {
    }
 
    // Confere os dados recuperados do arquivo (que pode ter sido alterado fora do programa):
-   // campos preenchidos, datas validas, pelo menos um pet e nomes de pets sem repeticao.
+   // campos preenchidos, datas validas, pelo menos um pet e nomes de pets sem repeticao
    public boolean dadosValidos() {
       if (cod <= 0 || nomeTutor == null || nomeTutor.trim().isEmpty()
             || endereco == null || endereco.trim().isEmpty()
