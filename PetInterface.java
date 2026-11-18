@@ -1,9 +1,8 @@
-// ***** Classe PetInterface ************************************************
-// Janela principal (JFrame) do cadastro de tutores e pets. Define as telas
-// de cada operacao, executa as operacoes do cadastro e mantem os dados
+//PetInterface
+// Janela principal do cadastro de tutores e pets. Define as telas de cada operacao, executa as operacoes do cadastro e mantem os dados
 // gravados no arquivo PetShop.dat (persistencia por serializacao).
 
-// *** Importacoes para interface e imagem *********************************
+//Importacoes para interface e imagem
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -22,7 +21,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-// *** Importacoes para lista e persistencia *******************************
 import java.util.ArrayList;
 import java.io.EOFException;
 import java.io.File;
@@ -32,85 +30,85 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-// *** Importacoes para representacao e validacao de datas *****************
 import java.time.DateTimeException;
 import java.time.LocalDate;
 
 public class PetInterface extends JFrame {
-   // *** Atributos ********************************************************
-   private int largura, altura; // Largura e altura da area util do frame.
-   // Area de log das acoes da sessao: JTextArea(<texto>, <linhas>, <colunas>).
-   private static JTextArea logArea = new JTextArea("", 10, 72);
-   private static int sizeLog = 0; // Contador de mensagens do log.
-   private static final String ARQ_DADOS = "PetShop.dat";  // Arquivo de dados.
-   private static final String ARQ_IMAGEM = "pets.png";    // Faixa decorativa.
-   // Cadastro em memoria: cada tutor contem a sua propria lista de pets.
+   private int largura, altura; 
+   private static JTextArea logArea = new JTextArea("", 10, 72); // Area de log das acoes da sessao 
+   private static int sizeLog = 0; // Variavel que serve pra fazer o contador de mensagens do log
+   private static final String ARQ_DADOS = "PetShop.dat";  // Arquivo de dados
+   private static final String ARQ_IMAGEM = "pets.png";    // arquivo da faixa decorativa
+   
    private static ArrayList<Tutor> tutores = new ArrayList<Tutor>();
-   // Opcoes do aplicativo (texto dos botoes da tela principal).
+   // Funcionalidades - texto dos botoes da tela principal
    private static final String[] option = {"Cadastrar tutor + pets", "Imprimir cadastro",
       "Buscar por codigo", "Excluir tutor", "Excluir pet", "Encerrar"};
-   // Impede gravar por cima de um arquivo que nao pode ser recuperado.
+      
+   // Impede gravar por cima de um arquivo que nao pode ser recuperado
    private static boolean leituraValida = true;
-   // Guarda uma explicacao simples para uma eventual falha de gravacao.
+   
+   // Guarda uma explicacao simples para uma eventual falha de gravacao
    private static String erroGravacao = "";
-   // Fonte monoespacada: mantem as colunas alinhadas nas areas de texto.
+   
+   // Fonte monoespacada pra manter as colunas alinhadas nas areas de texto
    static Font f = new Font("Monospaced", Font.PLAIN, 13);
 
-   // *** Criacao da tela principal ****************************************
+   // Criacao da tela principal 
    public PetInterface(int largura, int altura) {
-      super("CADASTRO DE TUTORES E PETS"); // Titulo do JFrame.
+      super("CADASTRO DE TUTORES E PETS"); 
       this.largura = largura;
       this.altura = altura;
       setLayout(new FlowLayout());
-      JPanel painel = new JPanel(); // Painel que contem os elementos da tela.
+      JPanel painel = new JPanel(); 
       painel.setPreferredSize(new Dimension(largura, altura));
       add(painel);
 
-      // Botoes das operacoes, em duas linhas de tres botoes.
+      // Botoes das operacoes
       ButtonHandler handler = new ButtonHandler();
       Box botoes = Box.createVerticalBox();
       JPanel linhaBotoes = null;
       for (int k = 0; k < option.length; k++) {
-         if (k % 3 == 0) { // Inicia uma nova linha a cada tres botoes.
+         if (k % 3 == 0) { // fizemos isso pra que inicie uma nova linha a cada tres botoes
             linhaBotoes = new JPanel(new FlowLayout());
             botoes.add(linhaBotoes);
          }
          JButton button = new JButton(option[k]);
-         button.addActionListener(handler); // Todos os botoes usam o mesmo ouvinte.
+         button.addActionListener(handler); 
          linhaBotoes.add(button);
       }
       painel.add(botoes);
 
-      // Area de log com as acoes realizadas na sessao.
+      // log com as acoes realizadas na sessao
       painel.add(new JLabel("Log de acoes realizadas na sessao."));
       Box box = Box.createHorizontalBox();
       logArea.setFont(f);
       logArea.setEditable(false);
-      logArea.setLineWrap(true);       // Quebra mensagens longas: dispensa a
-      logArea.setWrapStyleWord(true);  // rolagem horizontal do log.
+      logArea.setLineWrap(true);       
+      logArea.setWrapStyleWord(true);  
       box.add(new JScrollPane(logArea));
       painel.add(box);
 
-      // Faixa decorativa (imagem que acompanha os arquivos do projeto).
+      // Faixa decorativa 
       BufferedImage imgDecor = null;
       try {
          imgDecor = ImageIO.read(new File(ARQ_IMAGEM));
       } catch (IOException erro) {
-         // Arquivo ausente ou ilegivel: o aplicativo continua sem a faixa.
+         // arquivo ausente ou ilegivel. O aplicativo continua sem a faixa
          imgDecor = null;
       }
       JPanel decor = new JPanel(new FlowLayout());
-      if (imgDecor != null) { // ImageIO.read devolve null se nao for imagem.
+      if (imgDecor != null) { // ImageIO.read devolve null se nao for imagem
          decor.add(new JLabel(new ImageIcon(imgDecor)));
       } else {
          writeLog("Nao foi possivel carregar a imagem " + ARQ_IMAGEM + ".");
       }
       painel.add(decor);
 
-      // Recupera os dados do arquivo (ou faz o cadastramento previo no primeiro uso).
+      // Recupera os dados do arquivo ou faz o cadastro previo no primeiro uso
       int nTutores = recuperaDados();
       writeLog(nTutores + " tutor(es) carregado(s).");
-      pack(); // Calcula a moldura apos incluir todos os componentes.
+      pack(); // calcular a moldura apos incluir todos os componentes
 
       if (!leituraValida) {
          JOptionPane.showMessageDialog(this,
@@ -120,7 +118,7 @@ public class PetInterface extends JFrame {
       }
    }
 
-   // Ouvinte dos botoes da tela principal: cada opcao chama o seu metodo.
+   // ouvinte dos botoes da tela principal assim cada opcao chama o seu metodo
    private class ButtonHandler implements ActionListener {
       @Override
       public void actionPerformed(ActionEvent event) {
@@ -141,28 +139,28 @@ public class PetInterface extends JFrame {
       }
    }
 
-   // *** Metodos auxiliares ***********************************************
+   // Metodos
 
-   // Escreve uma mensagem na area de log.
+ 
    public static void writeLog(String s) {
-      if (sizeLog == 0) { // O cabecalho e escrito uma unica vez.
+      if (sizeLog == 0) { // O cabecalho eh escrito uma unica vez
          logArea.append("LOG CRIADO...");
       }
       logArea.append("\n- " + s);
       sizeLog++;
    }
 
-   // Mostra um aviso sobre dado de entrada que precisa ser corrigido.
+   // mostra um aviso sobre dado de entrada do usuario que precisa ser corrigido
    private static void aviso(Component janela, String msg) {
       JOptionPane.showMessageDialog(janela, msg, "Aviso", JOptionPane.WARNING_MESSAGE);
    }
 
-   // Mostra uma falha de operacao (ex.: erro de gravacao).
+   // mstra uma falha de operacao 
    private static void erro(Component janela, String msg) {
       JOptionPane.showMessageDialog(janela, msg, "Erro", JOptionPane.ERROR_MESSAGE);
    }
 
-   // Monta uma linha de componentes alinhados a esquerda.
+   // monta a linha de componentes alinhados a esquerda
    private static JPanel linha(Component... itens) {
       JPanel p = new JPanel(new FlowLayout(FlowLayout.LEADING));
       for (Component c : itens) {
@@ -171,7 +169,7 @@ public class PetInterface extends JFrame {
       return p;
    }
 
-   // Area de texto somente leitura com a fonte monoespacada.
+   // area de texto somente leitura 
    private static JTextArea areaTexto(int linhas, int colunas) {
       JTextArea area = new JTextArea("", linhas, colunas);
       area.setFont(f);
@@ -179,20 +177,20 @@ public class PetInterface extends JFrame {
       return area;
    }
 
-   // Produz o proximo codigo de tutor a partir do ultimo da lista.
-   // Devolve -1 se o ultimo codigo ja for o maior inteiro possivel.
+   // produz o proximo codigo de tutor a partir do ultimo da lista
+   // devolve -1 se o ultimo codigo ja for o maior inteiro possivel do java (meio impossivel mas eh boa pratica kkkkkk)
    public static int geraCod() {
       if (tutores.isEmpty()) {
-         return 1; // Primeiro cadastro.
+         return 1; //Primeiro cadastro
       }
       int ultimo = tutores.get(tutores.size() - 1).getCod();
       if (ultimo == Integer.MAX_VALUE) {
-         return -1; // Evita que o codigo "de a volta" e fique negativo.
+         return -1; // Evita que o codigo fique negativo
       }
       return ultimo + 1;
    }
 
-   // Devolve o tutor com o codigo informado ou null se nao existir.
+   // devolve o tutor com o codigo informado ou null se nao existir
    private static Tutor buscaTutor(int cod) {
       for (Tutor t : tutores) {
          if (t.getCod() == cod) {
@@ -202,12 +200,12 @@ public class PetInterface extends JFrame {
       return null;
    }
 
-   // Converte o codigo digitado. Mostra aviso e devolve -1 se nao for inteiro positivo.
+   // converte o codigo digitado - mostra aviso e devolve -1 se nao for inteiro positivo
    private static int lerCodigo(Component janela, JTextField campo) {
       int cod;
       try {
          cod = Integer.parseInt(campo.getText().trim());
-      } catch (NumberFormatException erro) { // Texto vazio ou nao inteiro.
+      } catch (NumberFormatException erro) { // texto vazio ou nao inteiro
          aviso(janela, "Informe o codigo do tutor (numero inteiro).");
          return -1;
       }
@@ -218,9 +216,9 @@ public class PetInterface extends JFrame {
       return cod;
    }
 
-   // Converte e valida a data informada nos campos dia, mes e ano: a data deve
-   // existir no calendario (inclusive bissextos), ter ano positivo e nao estar no futuro.
-   // Mostra o aviso adequado e devolve null se a data nao for aceita.
+   // Converte e valida a data informada nos campos dia, mes e ano
+   // a data deve existir no calendario (inclusive bissextos), ter ano positivo e nao estar no futuro
+   
    private static LocalDate lerData(Component janela, String quem,
                                     JTextField dia, JTextField mes, JTextField ano) {
       String d = dia.getText().trim();
@@ -235,7 +233,7 @@ public class PetInterface extends JFrame {
          D = Integer.parseInt(d);
          M = Integer.parseInt(m);
          A = Integer.parseInt(a);
-      } catch (NumberFormatException erro) { // Trata texto nao inteiro.
+      } catch (NumberFormatException erro) { // Trta exto nao inteiro
          aviso(janela, "Os campos da data de nascimento " + quem + " devem ser numericos.");
          return null;
       }
@@ -245,7 +243,7 @@ public class PetInterface extends JFrame {
       }
       LocalDate data;
       try {
-         data = LocalDate.of(A, M, D); // Lanca DateTimeException se a data nao existir.
+         data = LocalDate.of(A, M, D); //DateTimeException se a data nao existir
       } catch (DateTimeException erro) {
          aviso(janela, "Data de nascimento " + quem + " invalida (dia ou mes inexistente).");
          return null;
@@ -257,25 +255,25 @@ public class PetInterface extends JFrame {
       return data;
    }
 
-   // *** Cadastramento de tutor + pets ************************************
+   // Cadastro de tutor + pets 
    private void cadastrar() {
       CadastrarFrame cf = new CadastrarFrame();
-      cf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Fecha so esta janela.
+      cf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); 
       cf.pack();
       cf.setLocationRelativeTo(this);
       cf.setVisible(true);
    }
 
    private class CadastrarFrame extends JFrame {
-      // Campos do tutor.
+      // campos do tutor
       private JTextField nome = new JTextField(35);
       private JTextField endereco = new JTextField(35);
       private JTextField dia = new JTextField(2), mes = new JTextField(2), ano = new JTextField(4);
-      // Campos do pet a ser incluido.
+      // campos do pet 
       private JTextField nomePet = new JTextField(15);
       private JTextField tipoPet = new JTextField(12);
       private JTextField diaPet = new JTextField(2), mesPet = new JTextField(2), anoPet = new JTextField(4);
-      // Lista dos pets ja incluidos neste formulario (ainda nao gravados).
+      // lista pra armazenar os pets ja incluidos neste formulario mas ainda nao gravados
       private ArrayList<Pet> petsNovos = new ArrayList<Pet>();
       private JTextArea listaPets = areaTexto(5, 72);
 
@@ -304,7 +302,7 @@ public class PetInterface extends JFrame {
          atualizaListaPets();
       }
 
-      // Mostra os pets incluidos ate o momento.
+      // Mostra os pets incluidos ate o momento
       private void atualizaListaPets() {
          listaPets.setText("");
          if (petsNovos.isEmpty()) {
@@ -315,7 +313,7 @@ public class PetInterface extends JFrame {
          }
       }
 
-      // Valida o pet digitado e o inclui na lista do formulario.
+      // valida o pet digitado e o inclui na lista do formulario
       private class IncluirPetHandler implements ActionListener {
          @Override
          public void actionPerformed(ActionEvent evento) {
@@ -325,7 +323,7 @@ public class PetInterface extends JFrame {
                aviso(CadastrarFrame.this, "Informe o nome e o tipo do pet.");
                return;
             }
-            // Nomes de pets nao podem se repetir para o mesmo tutor.
+            // trata nome de pets que nao podem se repetir para o mesmo tutor
             for (Pet p : petsNovos) {
                if (p.getNomePet().equalsIgnoreCase(n)) {
                   aviso(CadastrarFrame.this, "Ja existe um pet chamado " + n + " para este tutor.");
@@ -334,18 +332,18 @@ public class PetInterface extends JFrame {
             }
             LocalDate dataNasc = lerData(CadastrarFrame.this, "do pet", diaPet, mesPet, anoPet);
             if (dataNasc == null) {
-               return; // Mantem os campos para correcao.
+               return; // mantem os campos para correcao
             }
             petsNovos.add(new Pet(n, t, dataNasc));
             atualizaListaPets();
-            // Limpa os campos do pet para a proxima inclusao.
+            // limpa os campos do pet para a proxima inclusao
             nomePet.setText(""); tipoPet.setText("");
             diaPet.setText(""); mesPet.setText(""); anoPet.setText("");
             nomePet.requestFocusInWindow();
          }
       }
 
-      // Descarta os pets incluidos no formulario (ainda nao gravados).
+      // descarta os pets incluidos no formulario mas ainda nao gravados
       private class LimparPetsHandler implements ActionListener {
          @Override
          public void actionPerformed(ActionEvent evento) {
@@ -354,7 +352,7 @@ public class PetInterface extends JFrame {
          }
       }
 
-      // Valida o tutor, cadastra-o com os pets incluidos e grava o arquivo.
+      // valida o tutor, cadastra com os pets incluidos e grava o arquivo
       private class CadastroHandler implements ActionListener {
          @Override
          public void actionPerformed(ActionEvent evento) {
@@ -368,7 +366,7 @@ public class PetInterface extends JFrame {
             if (dataNasc == null) {
                return;
             }
-            // Evita perder um pet digitado sem clicar em Incluir pet.
+            // evita perder um pet digitado sem clicar em Incluir pet antes de clicar em cadastrar
             if (!nomePet.getText().trim().isEmpty()) {
                aviso(CadastrarFrame.this, "Ha um pet digitado e nao incluido.\n" +
                   "Clique em \"Incluir pet\" ou apague o nome do pet.");
@@ -389,7 +387,7 @@ public class PetInterface extends JFrame {
                novo.incluiPet(p.getNomePet(), p.getTipoPet(), p.getDataNasc());
             }
             tutores.add(novo);
-            // So confirma o cadastro se a gravacao funcionar; senao, desfaz.
+            // so confirma o cadastro se a gravacao funcionar senao desfaz
             if (!gravaDados()) {
                tutores.remove(novo);
                erro(CadastrarFrame.this, "Cadastro nao gravado. " + erroGravacao +
@@ -400,7 +398,7 @@ public class PetInterface extends JFrame {
                novo.getDataNascFormatada() + "), com " + novo.numPets() + " pet(s).";
             JOptionPane.showMessageDialog(CadastrarFrame.this, msg);
             writeLog(msg);
-            // Limpa o formulario para um novo cadastramento.
+            // Limpa o formulario para um novo cadastro
             nome.setText(""); endereco.setText("");
             dia.setText(""); mes.setText(""); ano.setText("");
             petsNovos.clear();
@@ -410,7 +408,7 @@ public class PetInterface extends JFrame {
       }
    }
 
-   // *** Impressao do cadastro ********************************************
+   // Impressao do cadastro
    public void imprimirCadastro() {
       JFrame jf = new JFrame("CADASTRO IMPRESSO");
       jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -424,7 +422,7 @@ public class PetInterface extends JFrame {
             cadArea.append(t.toString());
             cadArea.append("------------------------------------------------------------\n");
          }
-         cadArea.setCaretPosition(0); // Mostra o inicio da listagem.
+         cadArea.setCaretPosition(0); // Mostra o inicio da listagem
          writeLog("Cadastro impresso (" + tutores.size() + " tutor(es)).");
       }
       jf.pack();
@@ -432,7 +430,7 @@ public class PetInterface extends JFrame {
       jf.setVisible(true);
    }
 
-   // *** Busca de tutor e seus pets pelo codigo ***************************
+   // Busca de tutor e seus pets pelo codigo 
    public void buscarTutor() {
       JFrame jf = new JFrame("BUSCA POR CODIGO");
       jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -464,7 +462,7 @@ public class PetInterface extends JFrame {
       public void actionPerformed(ActionEvent evento) {
          int c = lerCodigo(janela, codBus);
          if (c < 0) {
-            return; // Aguarda um codigo valido.
+            return; // aguarda um codigo valido
          }
          Tutor t = buscaTutor(c);
          if (t == null) {
@@ -479,7 +477,7 @@ public class PetInterface extends JFrame {
       }
    }
 
-   // *** Exclusao de tutor (com todos os seus pets) ***********************
+   // Exclusao de tutor (com todos os seus pets)
    public void excluirTutor() {
       JFrame jf = new JFrame("EXCLUIR TUTOR");
       jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -521,7 +519,7 @@ public class PetInterface extends JFrame {
          }
          int pos = tutores.indexOf(t);
          tutores.remove(pos);
-         // Se a gravacao falhar, recoloca o tutor na mesma posicao.
+         // Se a gravacao falhar, recoloca o tutor na mesma posicao
          if (!gravaDados()) {
             tutores.add(pos, t);
             erro(janela, "Exclusao nao gravada. " + erroGravacao);
@@ -534,7 +532,7 @@ public class PetInterface extends JFrame {
       }
    }
 
-   // *** Exclusao de pet pelo nome ****************************************
+   // Exclusao de pet pelo nome
    public void excluirPet() {
       JFrame jf = new JFrame("EXCLUIR PET");
       jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -596,11 +594,11 @@ public class PetInterface extends JFrame {
          int posPet = t.excluiPet(n);
          int posTutor = tutores.indexOf(t);
          boolean tutorExcluido = false;
-         if (t.numPets() == 0) { // Tutor sem pets tambem e excluido.
+         if (t.numPets() == 0) { // tutor sem pets tambem e excluido
             tutores.remove(posTutor);
             tutorExcluido = true;
          }
-         // Se a gravacao falhar, desfaz as alteracoes em memoria.
+         // Se a gravacao falhar, desfaz as alteracoes em memoria
          if (!gravaDados()) {
             t.restauraPet(posPet, pet);
             if (tutorExcluido) {
@@ -619,14 +617,13 @@ public class PetInterface extends JFrame {
       }
    }
 
-   // *** Encerramento *****************************************************
-   // Os dados ja estao gravados, pois cada alteracao e gravada na hora.
+   // Encerramento 
    public void encerrar() {
-      dispose();      // Fecha a janela principal.
-      System.exit(0); // Encerra a aplicacao (inclusive janelas auxiliares).
+      dispose();      // Fecha a janela principal
+      System.exit(0); // Encerra a aplicacao
    }
 
-   // *** Cadastramento previo (somente quando o arquivo ainda nao existe) ***
+   // Cadastro previo (somente quando o arquivo ainda nao existe)
    private static void popularCadastro() {
       Tutor t;
 
@@ -644,19 +641,19 @@ public class PetInterface extends JFrame {
       tutores.add(t);
    }
 
-   // *** Recuperacao dos dados do arquivo *********************************
-   // Retorna a quantidade de tutores recuperados.
+   // Recuperacao dos dados do arquivo 
+   // Retorna a quantidade de tutores recuperados  
    public static int recuperaDados() {
-      // Usa uma lista provisoria para nao substituir dados por uma leitura falha.
+      // usa uma lista provisoria para nao sair substituindo dados por uma leitura falha
       ArrayList<Tutor> lidos = new ArrayList<Tutor>();
-      FileInputStream fluxoEntrada = null; // Fluxo basico do arquivo.
-      ObjectInputStream entrada = null;    // Referencia usada no finally.
-      boolean concluida = false;           // Indica leitura completa e fechamento correto.
-      leituraValida = false;               // A gravacao fica bloqueada ate concluir a leitura.
-      File arquivo = new File(ARQ_DADOS);                 // Cadastro principal.
-      File anterior = new File(ARQ_DADOS + ".anterior");  // Copia de seguranca.
-
-      // Recupera a copia se uma execucao anterior parou durante a substituicao.
+      FileInputStream fluxoEntrada = null; // fluxo basico do arquivo.
+      ObjectInputStream entrada = null;    // referencia usada no finally
+      boolean concluida = false;           // indica leitura completa e fechamento correto
+      leituraValida = false;               // a gravacao fica bloqueada ate concluir a leitura
+      File arquivo = new File(ARQ_DADOS);                 // cadastro principa
+      File anterior = new File(ARQ_DADOS + ".anterior");  // copia de seguranca - fizemos conforme o exemplo no pdf da atividade 
+      
+      // Recupera a copia se uma execucao anterior parou durante a substituicao
       if (!arquivo.exists() && anterior.exists()) {
          if (!anterior.renameTo(arquivo)) {
             writeLog("Nao foi possivel restaurar a copia do cadastro. Gravacao bloqueada.");
@@ -665,7 +662,7 @@ public class PetInterface extends JFrame {
          writeLog("Cadastro restaurado a partir da copia de seguranca.");
       }
 
-      // Primeiro uso: faz o cadastramento previo e grava o arquivo inicial.
+      // Primeiro uso - faz o cadastro previo e grava o arquivo inicial
       if (!arquivo.exists()) {
          leituraValida = true;
          writeLog("Arquivo " + ARQ_DADOS + " inexistente. Cadastramento previo realizado.");
@@ -677,14 +674,14 @@ public class PetInterface extends JFrame {
       }
 
       try {
-         // Abre o fluxo que recupera a quantidade e os objetos gravados.
+         // Abre o fluxo que recupera a quantidade e os objetos gravados
          fluxoEntrada = new FileInputStream(arquivo);
          entrada = new ObjectInputStream(fluxoEntrada);
-         // A quantidade indica quantos tutores precisam ser recuperados.
+         // A quantidade indica quantos tutores precisam ser recuperados
          int quantidade = entrada.readInt();
          if (quantidade < 0) {
             writeLog("Quantidade de tutores invalida no arquivo. Gravacao bloqueada.");
-            return 0; // O finally ainda tentara fechar o arquivo.
+            return 0; // O finally ainda tentara fechar o arquivo
          }
          for (int i = 0; i < quantidade; i++) {
             Object objeto = entrada.readObject();
@@ -692,9 +689,9 @@ public class PetInterface extends JFrame {
                writeLog("O arquivo contem um objeto que nao e um Tutor. Gravacao bloqueada.");
                return 0;
             }
-            Tutor tutor = (Tutor) objeto; // Cada tutor vem com a sua lista de pets.
+            Tutor tutor = (Tutor) objeto; // Cada tutor vem com a sua lista de pets
             // O arquivo pode ter sido alterado fora do programa: confere o conteudo
-            // e exige codigos positivos, sem repeticao e em ordem crescente.
+            // e exige codigos positivos, sem repeticao e em ordem crescente
             int codAnterior = lidos.isEmpty() ? 0 : lidos.get(lidos.size() - 1).getCod();
             if (!tutor.dadosValidos() || tutor.getCod() <= codAnterior) {
                writeLog("O arquivo contem dados de tutor invalidos. Gravacao bloqueada.");
@@ -702,36 +699,33 @@ public class PetInterface extends JFrame {
             }
             lidos.add(tutor);
          }
-         concluida = true; // Todos os objetos previstos foram recuperados.
+         concluida = true; // Todos os objetos previstos foram recuperados
       } catch (EOFException erro) {
-         // O arquivo terminou antes da leitura de todos os dados previstos.
+         // O arquivo terminou antes da leitura de todos os dados previstos
          writeLog("Arquivo de dados incompleto. Gravacao bloqueada.");
       } catch (FileNotFoundException erro) {
-         // O arquivo existe, mas pode estar inacessivel ou ser um diretorio.
+         // O arquivo existe, mas pode estar inacessivel ou ser um diretorio
          writeLog("Nao foi possivel abrir o arquivo para leitura: " + erro.getMessage());
       } catch (ClassNotFoundException erro) {
-         // Um objeto salvo depende de uma classe que nao foi encontrada.
+         // Um objeto salvo depende de uma classe que nao foi encontrada
          writeLog("Classe dos dados gravados nao encontrada: " + erro.getMessage());
       } catch (IOException erro) {
-         // Abrange falhas de leitura e incompatibilidade da serializacao.
+         // Abrange falhas de leitura e incompatibilidade da serializacao
          writeLog("Falha ao ler o arquivo de dados: " + erro.getMessage());
       } catch (RuntimeException erro) {
-         // Dados adulterados podem gerar erros na reconstrucao dos objetos.
+         // Dados adulterados podem gerar erros na reconstrucao dos objetos
          writeLog("Arquivo de dados com conteudo invalido: " + erro);
-      } catch (OutOfMemoryError erro) {
-         // Tamanhos adulterados no arquivo podem exigir memoria demais.
-         writeLog("Arquivo de dados com tamanho invalido (memoria insuficiente). Gravacao bloqueada.");
       } finally {
-         // O fechamento e tentado mesmo se a leitura for interrompida por erro.
+         // O fechamento e tentado mesmo se a leitura for interrompida por erro
          if (entrada != null) {
             try {
                entrada.close();
             } catch (IOException erro) {
-               concluida = false; // Nao informa recuperacao bem-sucedida.
+               concluida = false; // Nao informa recuperacao bem-sucedida
                writeLog("Falha ao fechar o arquivo lido: " + erro.getMessage());
             }
          } else if (fluxoEntrada != null) {
-            // Fecha tambem se o construtor do fluxo de objetos tiver falhado.
+            // Fecha tambem se o construtor do fluxo de objetos tiver falhado
             try {
                fluxoEntrada.close();
             } catch (IOException erro) {
@@ -741,71 +735,71 @@ public class PetInterface extends JFrame {
       }
 
       if (!concluida) {
-         return 0; // Preserva a lista atual e bloqueia novas gravacoes.
+         return 0; // Preserva a lista atual e bloqueia novas gravacoes
       }
 
-      tutores.clear(); // Substitui a lista somente apos concluir a recuperacao.
-      tutores.addAll(lidos); // Mantem a ordem dos objetos recuperados.
-      leituraValida = true; // Libera a gravacao depois de uma leitura valida.
+      tutores.clear(); // Substitui a lista somente apos concluir a recuperacao
+      tutores.addAll(lidos); // Mantem a ordem dos objetos recuperados
+      leituraValida = true; // Libera a gravacao depois de uma leitura valida
       return tutores.size();
    }
 
-   // *** Gravacao dos dados no arquivo ************************************
-   // Grava primeiro em arquivo provisorio para preservar o cadastro existente.
-   // Retorna true somente apos gravar, fechar e instalar o novo arquivo.
+   //  Gravacao dos dados no arquivo 
+   // Grava primeiro em arquivo provisorio para preservar o cadastro existente
+   // Retorna true somente apos gravar, fechar e instalar o novo arquivo
    public static boolean gravaDados() {
-      erroGravacao = ""; // Descarta a explicacao da tentativa anterior.
+      erroGravacao = ""; // Descarta a explicacao da tentativa anterior
       if (!leituraValida) {
          erroGravacao = "O arquivo existente nao foi recuperado corretamente.";
          writeLog(erroGravacao);
-         return false; // Evita substituir dados inacessiveis.
+         return false; // Evita substituir dados inacessiveis
       }
 
-      File arquivo = new File(ARQ_DADOS);                 // Arquivo principal.
-      File novo = new File(ARQ_DADOS + ".novo");          // Recebera o cadastro atualizado.
-      File anterior = new File(ARQ_DADOS + ".anterior");  // Preserva o original.
-      FileOutputStream fluxoSaida = null;  // Fluxo basico do arquivo.
-      ObjectOutputStream saida = null;     // Sera fechado no bloco finally.
+      File arquivo = new File(ARQ_DADOS);                 // Arquivo principal
+      File novo = new File(ARQ_DADOS + ".novo");          // Recebera o cadastro atualizado
+      File anterior = new File(ARQ_DADOS + ".anterior");  // Preserva o original
+      FileOutputStream fluxoSaida = null;  // Fluxo basico do arquivo
+      ObjectOutputStream saida = null;     // Sera fechado no bloco finally
 
-      // Impede substituir um diretorio por um arquivo de cadastro.
+      // Impede substituir um diretorio por um arquivo de cadastro
       if ((arquivo.exists() && !arquivo.isFile()) || (anterior.exists() && !anterior.isFile())) {
          erroGravacao = "O caminho do cadastro ou da copia nao e um arquivo.";
          writeLog(erroGravacao);
          return false;
       }
 
-      boolean gravado = false; // So muda apos escrever e descarregar o fluxo.
+      boolean gravado = false; // So muda apos escrever e descarregar o fluxo
       try {
-         // O arquivo principal continua intacto durante esta etapa.
+         // O arquivo principal continua intacto durante esta etapa
          fluxoSaida = new FileOutputStream(novo);
          saida = new ObjectOutputStream(fluxoSaida);
-         // Grava a quantidade antes dos objetos para conferir a leitura.
+         // Grava a quantidade antes dos objetos para conferir a leitura
          saida.writeInt(tutores.size());
          for (Tutor tutor : tutores) {
-            saida.writeObject(tutor); // Serializa o tutor junto com seus pets.
+            saida.writeObject(tutor); // Serializa o tutor junto com seus pets
          }
-         saida.flush(); // Descarrega os dados antes de tentar o fechamento.
+         saida.flush(); // Descarrega os dados antes de tentar o fechamento
          gravado = true;
       } catch (FileNotFoundException erro) {
-         // Inclui caminho inadequado e impossibilidade de abrir para escrita.
+         // Inclui caminho inadequado e impossibilidade de abrir para escrita
          erroGravacao = "Nao foi possivel abrir o arquivo para gravacao.";
          writeLog(erroGravacao + " " + erro.getMessage());
       } catch (IOException erro) {
-         // Falha durante a escrita dos dados.
+         // Falha durante a escrita dos dados
          erroGravacao = "Ocorreu uma falha durante a gravacao dos dados.";
          writeLog(erroGravacao + " " + erro.getMessage());
       } finally {
-         // O close e tentado mesmo se a escrita tiver falhado.
+         // O close e tentado mesmo se a escrita tiver falhado
          if (saida != null) {
             try {
                saida.close();
             } catch (IOException erro) {
-               gravado = false; // Uma falha de fechamento impede confirmar.
+               gravado = false; // Uma falha de fechamento impede confirmar
                erroGravacao = "Nao foi possivel concluir o arquivo gravado.";
                writeLog(erroGravacao + " " + erro.getMessage());
             }
          } else if (fluxoSaida != null) {
-            // Garante fechamento se o fluxo de objetos nao chegou a ser criado.
+            // Garante fechamento se o fluxo de objetos nao chegou a ser criado
             try {
                fluxoSaida.close();
             } catch (IOException erro) {
@@ -815,10 +809,10 @@ public class PetInterface extends JFrame {
       }
 
       if (!gravado) {
-         return false; // O cadastro principal nao foi modificado.
+         return false; // O cadastro principal nao foi modificado
       }
 
-      // So elimina uma copia antiga se o cadastro principal ainda estiver presente.
+      // So elimina uma copia antiga se o cadastro principal ainda estiver presente
       if (anterior.exists()) {
          if (!arquivo.exists() || !anterior.delete()) {
             erroGravacao = "A copia anterior do cadastro precisa ser verificada.";
@@ -827,16 +821,16 @@ public class PetInterface extends JFrame {
          }
       }
 
-      boolean haviaArquivo = arquivo.exists(); // Registra se havera restauracao.
+      boolean haviaArquivo = arquivo.exists(); // Registra se havera restauracao
       if (haviaArquivo && !arquivo.renameTo(anterior)) {
          erroGravacao = "Nao foi possivel preservar o cadastro anterior.";
          writeLog(erroGravacao);
-         return false; // Mantem o original e o arquivo provisorio.
+         return false; // Mantem o original e o arquivo provisorio
       }
 
       if (!novo.renameTo(arquivo)) {
          erroGravacao = "Nao foi possivel colocar o novo cadastro em uso.";
-         // Se havia um cadastro, tenta restabelecer seu nome original.
+         // Se havia um cadastro, tenta restabelecer seu nome original
          if (haviaArquivo && !anterior.renameTo(arquivo)) {
             erroGravacao += " Os dados anteriores estao em " + anterior.getName() + ".";
          }
@@ -844,7 +838,7 @@ public class PetInterface extends JFrame {
          return false;
       }
 
-      // O arquivo anterior permanece como copia de seguranca ate a proxima gravacao.
+      // O arquivo anterior permanece como copia de seguranca ate a proxima gravacao
       return true;
    }
 }
