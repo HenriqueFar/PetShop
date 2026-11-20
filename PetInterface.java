@@ -3,7 +3,6 @@
 // gravados no arquivo PetShop.dat (persistencia por serializacao).
 
 //Importacoes para interface e imagem
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -111,10 +110,9 @@ public class PetInterface extends JFrame {
       pack(); // calcular a moldura apos incluir todos os componentes
 
       if (!leituraValida) {
-         JOptionPane.showMessageDialog(this,
+         aviso(this,
             "Nao foi possivel ler o arquivo " + ARQ_DADOS + " (detalhes no log).\n" +
-            "Para nao perder os dados existentes, nenhuma alteracao sera gravada.",
-            "Aviso", JOptionPane.WARNING_MESSAGE);
+            "Para nao perder os dados existentes, nenhuma alteracao sera gravada.");
       }
    }
 
@@ -150,23 +148,14 @@ public class PetInterface extends JFrame {
       sizeLog++;
    }
 
-   // mostra um aviso sobre dado de entrada do usuario que precisa ser corrigido
-   private static void aviso(Component janela, String msg) {
-      JOptionPane.showMessageDialog(janela, msg, "Aviso", JOptionPane.WARNING_MESSAGE);
+   // mostra um aviso ao usuario (dado a corrigir ou falha de operacao)
+   private static void aviso(JFrame janela, String msg) {
+      JOptionPane.showMessageDialog(janela, msg);
    }
 
-   // mstra uma falha de operacao 
-   private static void erro(Component janela, String msg) {
-      JOptionPane.showMessageDialog(janela, msg, "Erro", JOptionPane.ERROR_MESSAGE);
-   }
-
-   // monta a linha de componentes alinhados a esquerda
-   private static JPanel linha(Component... itens) {
-      JPanel p = new JPanel(new FlowLayout(FlowLayout.LEADING));
-      for (Component c : itens) {
-         p.add(c);
-      }
-      return p;
+   // cria uma linha vazia, com os componentes alinhados a esquerda
+   private static JPanel linha() {
+      return new JPanel(new FlowLayout(FlowLayout.LEADING));
    }
 
    // area de texto somente leitura 
@@ -201,7 +190,7 @@ public class PetInterface extends JFrame {
    }
 
    // converte o codigo digitado - mostra aviso e devolve -1 se nao for inteiro positivo
-   private static int lerCodigo(Component janela, JTextField campo) {
+   private static int lerCodigo(JFrame janela, JTextField campo) {
       int cod;
       try {
          cod = Integer.parseInt(campo.getText().trim());
@@ -219,8 +208,7 @@ public class PetInterface extends JFrame {
    // Converte e valida a data informada nos campos dia, mes e ano
    // a data deve existir no calendario (inclusive bissextos), ter ano positivo e nao estar no futuro
    
-   private static LocalDate lerData(Component janela, String quem,
-                                    JTextField dia, JTextField mes, JTextField ano) {
+   private static LocalDate lerData(JFrame janela, String quem, JTextField dia, JTextField mes, JTextField ano) {
       String d = dia.getText().trim();
       String m = mes.getText().trim();
       String a = ano.getText().trim();
@@ -281,24 +269,58 @@ public class PetInterface extends JFrame {
          super("CADASTRAR TUTOR + PETS");
          Box box = Box.createVerticalBox();
          add(box);
-         box.add(linha(new JLabel("Nome do tutor"), nome));
-         box.add(linha(new JLabel("Endereco"), endereco));
-         box.add(linha(new JLabel("Data de nasc.(dd/mm/aaaa)"),
-            dia, new JLabel("/"), mes, new JLabel("/"), ano));
+         JPanel l; // linha atual do formulario
 
-         box.add(linha(new JLabel("Pets do tutor (inclua pelo menos um):")));
-         box.add(linha(new JLabel("Nome do pet"), nomePet, new JLabel("Tipo"), tipoPet));
+         l = linha();
+         l.add(new JLabel("Nome do tutor"));
+         l.add(nome);
+         box.add(l);
+
+         l = linha();
+         l.add(new JLabel("Endereco"));
+         l.add(endereco);
+         box.add(l);
+
+         l = linha();
+         l.add(new JLabel("Data de nasc.(dd/mm/aaaa)"));
+         l.add(dia); l.add(new JLabel("/"));
+         l.add(mes); l.add(new JLabel("/"));
+         l.add(ano);
+         box.add(l);
+
+         l = linha();
+         l.add(new JLabel("Pets do tutor (inclua pelo menos um):"));
+         box.add(l);
+
+         l = linha();
+         l.add(new JLabel("Nome do pet"));
+         l.add(nomePet);
+         l.add(new JLabel("Tipo"));
+         l.add(tipoPet);
+         box.add(l);
+
          JButton incluir = new JButton("Incluir pet");
          incluir.addActionListener(new IncluirPetHandler());
-         box.add(linha(new JLabel("Data de nasc.(dd/mm/aaaa)"),
-            diaPet, new JLabel("/"), mesPet, new JLabel("/"), anoPet, incluir));
-         box.add(linha(new JScrollPane(listaPets)));
+         l = linha();
+         l.add(new JLabel("Data de nasc.(dd/mm/aaaa)"));
+         l.add(diaPet); l.add(new JLabel("/"));
+         l.add(mesPet); l.add(new JLabel("/"));
+         l.add(anoPet);
+         l.add(incluir);
+         box.add(l);
+
+         l = linha();
+         l.add(new JScrollPane(listaPets));
+         box.add(l);
 
          JButton ok = new JButton("Cadastrar tutor + pets");
          ok.addActionListener(new CadastroHandler());
          JButton limpar = new JButton("Limpar pets");
          limpar.addActionListener(new LimparPetsHandler());
-         box.add(linha(ok, limpar));
+         l = linha();
+         l.add(ok);
+         l.add(limpar);
+         box.add(l);
          atualizaListaPets();
       }
 
@@ -367,9 +389,11 @@ public class PetInterface extends JFrame {
                return;
             }
             // evita perder um pet digitado sem clicar em Incluir pet antes de clicar em cadastrar
-            if (!nomePet.getText().trim().isEmpty()) {
+            if (!nomePet.getText().trim().isEmpty() || !tipoPet.getText().trim().isEmpty() ||
+                  !diaPet.getText().trim().isEmpty() || !mesPet.getText().trim().isEmpty() ||
+                  !anoPet.getText().trim().isEmpty()) {
                aviso(CadastrarFrame.this, "Ha um pet digitado e nao incluido.\n" +
-                  "Clique em \"Incluir pet\" ou apague o nome do pet.");
+                  "Clique em \"Incluir pet\" ou apague os campos do pet.");
                return;
             }
             if (petsNovos.isEmpty()) {
@@ -379,7 +403,7 @@ public class PetInterface extends JFrame {
 
             int cod = geraCod();
             if (cod < 0) {
-               erro(CadastrarFrame.this, "Limite de codigos de tutor atingido. Cadastro nao realizado.");
+               aviso(CadastrarFrame.this, "Limite de codigos de tutor atingido. Cadastro nao realizado.");
                return;
             }
             Tutor novo = new Tutor(cod, n, end, dataNasc);
@@ -390,7 +414,7 @@ public class PetInterface extends JFrame {
             // so confirma o cadastro se a gravacao funcionar senao desfaz
             if (!gravaDados()) {
                tutores.remove(novo);
-               erro(CadastrarFrame.this, "Cadastro nao gravado. " + erroGravacao +
+               aviso(CadastrarFrame.this, "Cadastro nao gravado. " + erroGravacao +
                   "\nOs campos foram mantidos para nova tentativa.");
                return;
             }
@@ -413,7 +437,9 @@ public class PetInterface extends JFrame {
       JFrame jf = new JFrame("CADASTRO IMPRESSO");
       jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
       JTextArea cadArea = areaTexto(20, 72);
-      jf.add(linha(new JScrollPane(cadArea)));
+      JPanel l = linha();
+      l.add(new JScrollPane(cadArea));
+      jf.add(l);
       if (tutores.isEmpty()) {
          cadArea.append("<Cadastro vazio>");
          writeLog("Impressao: <cadastro vazio>");
@@ -439,8 +465,14 @@ public class PetInterface extends JFrame {
       JButton buscar = new JButton("Buscar");
       buscar.addActionListener(new BuscarHandler(jf, codBus, resBusca));
       Box box = Box.createVerticalBox();
-      box.add(linha(new JLabel("Cod.: "), codBus, buscar));
-      box.add(linha(new JScrollPane(resBusca)));
+      JPanel l = linha();
+      l.add(new JLabel("Cod.: "));
+      l.add(codBus);
+      l.add(buscar);
+      box.add(l);
+      l = linha();
+      l.add(new JScrollPane(resBusca));
+      box.add(l);
       jf.add(box);
       jf.pack();
       jf.setLocationRelativeTo(this);
@@ -484,7 +516,11 @@ public class PetInterface extends JFrame {
       JTextField codigo = new JTextField(3);
       JButton excluir = new JButton("Excluir tutor e seus pets");
       excluir.addActionListener(new ExcluirTutorHandler(jf, codigo));
-      jf.add(linha(new JLabel("Cod. do tutor: "), codigo, excluir));
+      JPanel l = linha();
+      l.add(new JLabel("Cod. do tutor: "));
+      l.add(codigo);
+      l.add(excluir);
+      jf.add(l);
       jf.pack();
       jf.setLocationRelativeTo(this);
       jf.setVisible(true);
@@ -511,18 +547,12 @@ public class PetInterface extends JFrame {
             writeLog("Exclusao: tutor com codigo " + c + " inexistente.");
             return;
          }
-         int resp = JOptionPane.showConfirmDialog(janela, "Excluir o tutor " + c + " - " +
-            t.getNomeTutor() + " e seus " + t.numPets() + " pet(s)?",
-            "Confirmar exclusao", JOptionPane.YES_NO_OPTION);
-         if (resp != JOptionPane.YES_OPTION) {
-            return;
-         }
          int pos = tutores.indexOf(t);
          tutores.remove(pos);
          // Se a gravacao falhar, recoloca o tutor na mesma posicao
          if (!gravaDados()) {
             tutores.add(pos, t);
-            erro(janela, "Exclusao nao gravada. " + erroGravacao);
+            aviso(janela, "Exclusao nao gravada. " + erroGravacao);
             return;
          }
          String msg = "Excluido: tutor " + c + " - " + t.getNomeTutor() + " e seus pets.";
@@ -540,8 +570,13 @@ public class PetInterface extends JFrame {
       JTextField nomePet = new JTextField(15);
       JButton excluir = new JButton("Excluir pet");
       excluir.addActionListener(new ExcluirPetHandler(jf, codigo, nomePet));
-      jf.add(linha(new JLabel("Cod. do tutor: "), codigo,
-         new JLabel("Nome do pet: "), nomePet, excluir));
+      JPanel l = linha();
+      l.add(new JLabel("Cod. do tutor: "));
+      l.add(codigo);
+      l.add(new JLabel("Nome do pet: "));
+      l.add(nomePet);
+      l.add(excluir);
+      jf.add(l);
       jf.pack();
       jf.setLocationRelativeTo(this);
       jf.setVisible(true);
@@ -580,16 +615,6 @@ public class PetInterface extends JFrame {
             writeLog("Exclusao de pet: " + n + " inexistente para o tutor " + c + ".");
             return;
          }
-         String pergunta = "Excluir o pet " + pet.getNomePet() + " do tutor " + c + " - " +
-            t.getNomeTutor() + "?";
-         if (t.numPets() == 1) {
-            pergunta += "\nO tutor tambem sera excluido, pois ficara sem pets.";
-         }
-         int resp = JOptionPane.showConfirmDialog(janela, pergunta,
-            "Confirmar exclusao", JOptionPane.YES_NO_OPTION);
-         if (resp != JOptionPane.YES_OPTION) {
-            return;
-         }
 
          int posPet = t.excluiPet(n);
          int posTutor = tutores.indexOf(t);
@@ -604,7 +629,7 @@ public class PetInterface extends JFrame {
             if (tutorExcluido) {
                tutores.add(posTutor, t);
             }
-            erro(janela, "Exclusao nao gravada. " + erroGravacao);
+            aviso(janela, "Exclusao nao gravada. " + erroGravacao);
             return;
          }
          String msg = "Excluido: pet " + pet.getNomePet() + " do tutor " + c + " - " + t.getNomeTutor() + ".";
